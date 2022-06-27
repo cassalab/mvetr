@@ -131,3 +131,4 @@ dmypy.json
 # local directories
 PROBE
 notebooks
+data
