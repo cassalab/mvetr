@@ -7,18 +7,16 @@ from tqdm import tqdm
 from contextlib import ExitStack
 
 import constants
+import helpers
 
 
 basket_columns = pd.read_csv(constants.basket_path, nrows=0)
-basket_phenocodes = set(list(map(lambda x: x.split("-")[0], basket_columns.columns.tolist()[1:])))
-
 genebass_top = pd.read_csv(constants.genebass_top_hist_path)
 
-# pick only those that we have in our list
-genebass_top = genebass_top[genebass_top.Phenotype.isin(basket_phenocodes)]
+genebass_top = helpers.get_genebass_top()
 genebass_phenocodes = genebass_top.Phenotype.unique().tolist()
 # indices of columns that we use
-use_cols = np.where(np.array([True] + list(map(lambda x: x.split("-")[0] in (genebass_phenocodes + constants.adjustment_phenocodes), basket_columns.columns.tolist()[1:]))) == True)[0]
+use_cols = np.where(np.array([True] + list(map(lambda x: x.split("-")[0] in ([constants.wears_glasses_phenocode] + genebass_phenocodes + constants.adjustment_phenocodes), basket_columns.columns.tolist()[1:]))) == True)[0]
 # names of the columns
 basket_cols_raw = basket_columns.columns.values[use_cols]
 
