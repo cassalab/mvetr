@@ -121,7 +121,6 @@ def clean_categorical_text_multiclass_phenocodes(phenocode_list, output_dir):
             df = pd.read_csv(filename, skip_blank_lines=False)
             df = pd.concat((eid_df, df), axis=1)
             df.rename(columns={df.columns[1]: "value"}, inplace=True)
-            df.value.fillna(0)
             df.value = df.value.astype(str)
             df.loc[~df.value.isin(associated_codes), "value"] = '0'
             if patient_phenotype_df is None:
@@ -140,26 +139,61 @@ def clean_categorical_text_multiclass_phenocodes(phenocode_list, output_dir):
             cur_patient_phenotype_df.to_pickle(f"{output_dir}/{phenocode}-{code}.pkl")
 
 
+# additional classification - negative class if nan, positive otherwise
+def clean_categorical_text_multiclass_all_phenocodes(phenocode_list, output_dir):
+    eid_df = pd.read_csv(os.path.join(constants.ukbb_extracts_output_dir, "eid.csv"))
+
+    for phenocode in tqdm(phenocode_list):        
+        patient_phenotype_df = None
+        phenotypes_files = glob.glob(constants.ukbb_extracts_output_dir + f"/{phenocode}-0.0.csv")
+        for filename in phenotypes_files:
+            df = pd.read_csv(filename, skip_blank_lines=False)
+            df = pd.concat((eid_df, df), axis=1)
+            df.rename(columns={df.columns[1]: "value"}, inplace=True)
+            df.loc[~df.value.isna(), "value"] = 1
+            df.value.fillna(0, inplace=True)
+            df.to_pickle(f"{output_dir}/{phenocode}.pkl")
+
+            
+# additional binary class - positive if subject takes any statins
+def clean_binary_statins(output_dir):
+    eid_df = pd.read_csv(os.path.join(constants.ukbb_extracts_output_dir, "eid.csv"))
+       
+    med_codes_df = pd.read_csv(constants.medication_coding_path, sep="\t")
+    med_codes_df.meaning = med_codes_df.meaning.apply(str.lower)
+    statin_codes = set(med_codes_df[med_codes_df.meaning.apply(
+        lambda x: any([statin in x for statin in constants.statins_names]))].coding.tolist())
+    
+    patient_phenotype_df = None
+    phenotypes_files = glob.glob(constants.ukbb_extracts_output_dir + f"/{constants.medication_phenocode}-0.*.csv")
+    for filename in tqdm(phenotypes_files):
+        df = pd.read_csv(filename, skip_blank_lines=False)
+        df = pd.concat((eid_df, df), axis=1)
+        df.rename(columns={df.columns[1]: "value"}, inplace=True)
+        df.loc[~df.value.isin(statin_codes), "value"] = 0
+        df.loc[df.value.isin(statin_codes), "value"] = 1
+        if patient_phenotype_df is None:
+            patient_phenotype_df = df
+        else:
+            patient_phenotype_df = pd.concat((patient_phenotype_df, df))
+    patient_phenotype_df = patient_phenotype_df.sort_values("value", ascending=False).drop_duplicates(subset="eid")
+    patient_phenotype_df.to_pickle(f"{output_dir}/{constants.medication_phenocode}-statins.pkl")
+            
+
 regular_continuous_phenocodes = genebass_top_df[(genebass_top_df["Trait type"] == "continuous") & 
                                                 ~genebass_top_df.Description.isin(constants.continuous_phenotypes_other)
                                                ].Phenotype.unique()
 
-clean_continuous_phenocodes(regular_continuous_phenocodes, f"{constants.ukbb_extracts_output_dir}/cleaned_phenotypes/continuous")
-
-clean_continuous_phenocodes(constants.adjustment_phenocodes, f"{constants.ukbb_extracts_output_dir}/cleaned_phenotypes/adjust")
+clean_continuous_phenocodes(regular_continuous_phenocodes, constants.cleaned_continuous_phenotypes_dir)
+clean_continuous_phenocodes(constants.adjustment_phenocodes, constants.cleaned_adjust_phenotypes_dir)
 
 single_assessment_continuous_phenocodes = genebass_top_df[(genebass_top_df["Trait type"] == "continuous") & 
                                                 genebass_top_df.Description.isin(constants.continuous_phenotypes_other)
                                                ].Phenotype.unique()
 
-clean_continuous_single_measurement_phenocodes(single_assessment_continuous_phenocodes, 
-                                               f"{constants.ukbb_extracts_output_dir}/cleaned_phenotypes/continuous_single_assessment")
-
-clean_categorical_binary_phenocodes(constants.categorical_binary_phenocodes + [constants.wears_glasses_phenocode], 
-                                    f"{constants.ukbb_extracts_output_dir}/cleaned_phenotypes/categorical_binary")
-
-clean_categorical_multiclass_phenocodes(constants.categorical_multiclass_phenocodes, 
-                                        f"{constants.ukbb_extracts_output_dir}/cleaned_phenotypes/categorical_binary")
-
-clean_categorical_text_multiclass_phenocodes(constants.categorical_text_multiclass_phenocodes, 
-                                             f"{constants.ukbb_extracts_output_dir}/cleaned_phenotypes/categorical_binary")
+clean_continuous_single_measurement_phenocodes(single_assessment_continuous_phenocodes, constants.cleaned_continuous_single_assessment_phenotypes_dir)
+clean_categorical_binary_phenocodes(constants.categorical_binary_phenocodes + [constants.wears_glasses_phenocode], constants.cleaned_categorical_phenotypes_dir)
+clean_categorical_multiclass_phenocodes(constants.categorical_multiclass_phenocodes, constants.cleaned_categorical_phenotypes_dir)
+clean_categorical_text_multiclass_phenocodes(constants.categorical_text_multiclass_phenocodes, constants.cleaned_categorical_phenotypes_dir)
+clean_categorical_text_multiclass_all_phenocodes(constants.categorical_text_multiclass_phenocodes, constants.cleaned_categorical_phenotypes_dir)
+clean_binary_statins(constants.cleaned_categorical_phenotypes_dir)

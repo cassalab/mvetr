@@ -5,7 +5,7 @@ Inspired by MVP, we develop a deep learning network to predict missense variant 
 ### 0. Update the paths
 Change the paths in the `ukbb_data_scripts/constants.py` file.
 
-### 1. Dataset preparation
+### 1. Phenotype dataset preprocessing
 
 #### a) Identify gene-phenotype associations
 We limit our study to the top gene-phenotype associations identified in [Systematic single-variant and gene-based association testing of thousands of phenotypes in 426,370 UK Biobank exomes](https://www.medrxiv.org/content/10.1101/2021.06.19.21259117v4.full-text). We take the results of the SKAT-O gene-based burden tests with p-value threshold of 10^{-5}. They can be downloaded using the web-GUI at [https://app.genebass.org/gene/ENSG00000175445/phenotype/continuous-30760-both_sexes--irnt?burdenSet=missense%7CLC&phewasOpts=1&resultIndex=top-associations&resultLayout=full](https://app.genebass.org/gene/ENSG00000175445/phenotype/continuous-30760-both_sexes--irnt?burdenSet=missense%7CLC&phewasOpts=1&resultIndex=top-associations&resultLayout=full). Update the `genebass_top_hist_path` in `ukbb_data_scripts/constants.py`.
@@ -17,9 +17,27 @@ The script extracts the phenothype annotations for the phenotypes identified in 
 
 This step reduces the file sizes for ease of computing.
 
-Similarly extract [10 genetic principal components](https://biobank.ndph.ox.ac.uk/showcase/field.cgi?id=22009) to a csv with "id" column that corresponds to the patient ids. Update the  `genetic_pcs_path` in `ukbb_data_scripts/constants.py`.
+Similarly extract [10 genetic principal components](https://biobank.ndph.ox.ac.uk/showcase/field.cgi?id=22009) to a csv with "eid" column that corresponds to the patient ids. Update the  `genetic_pcs_path` in `ukbb_data_scripts/constants.py`.
 
 #### c) Generate patient_id-phenotype dataframes
-Execute `ubb_data_scripts/create_eid_trait_pickles.py`
+To create a "statin" phenotype that indicates whether a subject takes any of the listed statins, download the medication coding https://biobank.ndph.ox.ac.uk/showcase/coding.cgi?id=4 and update the `medication_coding_path` in `ukbb_data_scripts/constants.py`.
+
+Execute `ukbb_data_scripts/create_eid_trait_pickles.py`
 
 The script parses the csvs generated in step 1. b) to create continuous and binary trait dataframes.
+
+#### d) Adjust for covariates
+Execute `ukbb_data_scripts/adjust_for_covariates.py`
+
+Adjusts for sex, age, 10PCs, age^2, sex*age, sex*age^2 using linear regression for the continuous traits. Lipid metabolites ("Cholesterol", "LDL direct", "Apolipoprotein B", "HDL cholesterol", "Apolipoprotein A") are also adjusted for the intake of statins. Binary traits are left untreated. In addition, it creates gene-phenotype association dataframe.
+
+### 2. Variant dataset preprocessing
+
+#### a) Filter missense variants, extract pp2 annotations
+We write the UKBB variants to vcf format and store the path to the directory in `ukbb_data_scripts/constants.py` in `vcfs_dir` variable. Note that these scripts use [PolyPhen2 tools](http://genetics.bwh.harvard.edu/pph2/dokuwiki/downloads) to extract variant annotations listed [here](http://genetics.bwh.harvard.edu/pph2/dokuwiki/appendix_a). Our pipeline is described in `ukbb_data_scripts/polyphen2_pipeline.py`. The PP2 annotations are stored in `pp2_output_path`,  found in `ukbb_data_scripts/constants.py`.
+
+#### b) Extract EVE and VARITY annotations
+Download [EVE scores](https://evemodel.org/download/bulk) and update the `eve_scores_dir` in `ukbb_data_scripts/constants.py` to point to the `variant_files` directory. Same for [VARITY](http://varity.varianteffect.org/) and the `varity_scores_path` variable. `vcf_input_path` and `vcf_output_path` should be set too, that's where vcf input/output to/from [vep](http://uswest.ensembl.org/info/docs/tools/vep/script/vep_plugins.html#dbnsfp) will be. Execute `ukbb_data_scripts/extract_features.py`
+
+#### c) Extract dbNSFP annotations
+Execute vep on the input in VCF format stored in `vcf_input_path` and store the output in `vcf_output_path`, e.g. by running ``
