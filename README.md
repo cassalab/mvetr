@@ -3,7 +3,7 @@ Inspired by MVP, we develop a deep learning network to predict missense variant 
 
 ## Steps
 ### 0. Update the paths
-Change the paths in the `ukbb_data_scripts/constants.py` file.
+Update the paths in the `ukbb_data_scripts/constants.py` file.
 
 ### 1. Phenotype dataset preprocessing
 
@@ -36,8 +36,18 @@ Adjusts for sex, age, 10PCs, age^2, sex*age, sex*age^2 using linear regression f
 #### a) Filter missense variants, extract pp2 annotations
 We write the UKBB variants to vcf format and store the path to the directory in `ukbb_data_scripts/constants.py` in `vcfs_dir` variable. Note that these scripts use [PolyPhen2 tools](http://genetics.bwh.harvard.edu/pph2/dokuwiki/downloads) to extract variant annotations listed [here](http://genetics.bwh.harvard.edu/pph2/dokuwiki/appendix_a). Our pipeline is described in `ukbb_data_scripts/polyphen2_pipeline.py`. The PP2 annotations are stored in `pp2_output_path`,  found in `ukbb_data_scripts/constants.py`.
 
-#### b) Extract EVE and VARITY annotations
-Download [EVE scores](https://evemodel.org/download/bulk) and update the `eve_scores_dir` in `ukbb_data_scripts/constants.py` to point to the `variant_files` directory. Same for [VARITY](http://varity.varianteffect.org/) and the `varity_scores_path` variable. `vcf_input_path` and `vcf_output_path` should be set too, that's where vcf input/output to/from [vep](http://uswest.ensembl.org/info/docs/tools/vep/script/vep_plugins.html#dbnsfp) will be. Execute `ukbb_data_scripts/extract_features.py`
+#### b) Add EVE and PP2 scores
+Download [EVE scores](https://evemodel.org/download/bulk) and update the `eve_scores_dir` in `ukbb_data_scripts/constants.py` to point to the `variant_files` directory. `vcf_input_path` and `vcf_output_path` should be set too, that's where vcf input/output to/from [vep](http://uswest.ensembl.org/info/docs/tools/vep/script/vep_plugins.html#dbnsfp) will be. Execute `ukbb_data_scripts/extract_features.py`
+
+<!-- Same for [VARITY](http://varity.varianteffect.org/) and the `varity_scores_path` variable. -->
 
 #### c) Extract dbNSFP annotations
-Execute vep on the input in VCF format stored in `vcf_input_path` and store the output in `vcf_output_path`, e.g. by running ``
+Execute vep on the input in VCF format stored in `vcf_input_path` and store the output in `vcf_output_path`, e.g. by running `vep --cache --offline --dir /net/data/vep --assembly GRCh38 --plugin dbNSFP,/net/home/tianyu/dbNSFP4.2a_grch38.gz,ALL --vcf --no_check_variants_order --canonical --no_stats -I <vcf_input_path> -o <vcf_output_path>`.
+To parse and add the dbNSFP annotations, execute `ukbb_data_scripts/add_dbnsfp_features.py`. In this step we also limit the variants to those idenitified as missense by dbNSFP.
+
+#### d) Add VARITY annotations
+Execute `ukbb_data_scripts/add_varity_features.py` to download [VARITY features](http://varity.varianteffect.org/) and add them to the dataframe with variant features. Note that this requires selenium and chrome web driver.
+
+#### e) Get variant statistics
+In this step we generate a dataset of variant descriptors. We save 
+
