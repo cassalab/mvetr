@@ -7,7 +7,10 @@ medication_coding_path = f"{repo_dir}/data/coding4.tsv"
 eve_scores_dir = f"{repo_dir}/notebooks/gene_exploration/variant_files"
 vcf_input_path = f"{repo_dir}/dbnsfp_scripts/my_input.vcf"
 vcf_output_path = f"{repo_dir}/dbnsfp_scripts/my_output_all.vcf"
+# directory where csvs with variant-patient mappings are stored
+ukbb_var_patient_dir = "/net/ukbb/datasets/45878/hail_extracts/whole_mt_csvs"
 
+variant_phenotype_output_dir = f"{repo_dir}/data/variants_phenotypes"
 vcfs_dir = "/net/ukbb/datasets/45878/hail_extracts/non_annotated_vcfs"
 pp2_output_path = "/net/data/artur/pph2/afold2/mysnps.pph.output"
 pp2_humdiv_output_path = "/net/data/artur/pph2/afold2/mysnps.humdivmz.output"
@@ -18,6 +21,7 @@ variant_features_all = f"{repo_dir}/data/variant_features_all.pkl"
 # path to the df with the missense variants ids from pp2
 pp2_variants_path = f"{repo_dir}/data/ukbb_extract/pp2_variants.pkl"
 
+var_patient_mapping_path = f"{repo_dir}/data/var_patient_mapping.json"
 cleaned_adjust_phenotypes_dir = f"{ukbb_extracts_output_dir}/cleaned_phenotypes/adjust"
 cleaned_continuous_phenotypes_dir = f"{ukbb_extracts_output_dir}/cleaned_phenotypes/continuous"
 cleaned_continuous_single_assessment_phenotypes_dir = f"{ukbb_extracts_output_dir}/cleaned_phenotypes/continuous_single_assessment"
@@ -32,6 +36,9 @@ age_phenocode = "21003"
 sex_phenocode = "31"
 medication_phenocode = "20003"
 adjustment_phenocodes = [age_phenocode, sex_phenocode]
+
+maf_filter = 0.1
+total_patients = 200000
 
 statins_names = ["atorvastatin", "fluvastatin", "lovastatin", "pitavastatin", "pravastatin", "rosuvastatin", "simvastatin", "lipitor", "altoprev", "lescol", "livalo", "zypitamag", "pravachol", "crestor", "ezallor", "zocor"]
 
@@ -268,4 +275,4 @@ varity_cols = ['VARITY_ER', 'VARITY_ER_LOO', 'provean_score', 'sift_score',
        'size_delta']
 
 all_cat_cols = pp2_feature_cols_cat + dbnsfp_categorical_cols
-all_cont_cols = pp2_feature_cols_cont + eve_cols + pp2_pred_cols_both + dbnsfp_continuous_cols + varity_cols
+all_cont_cols = pp2_feature_cols_cont + eve_cols + pp2_pred_cols_both + dbnsfp_continuous_cols + varity_cols + ["highest_AF"]

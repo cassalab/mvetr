@@ -49,5 +49,21 @@ To parse and add the dbNSFP annotations, execute `ukbb_data_scripts/add_dbnsfp_f
 Execute `ukbb_data_scripts/add_varity_features.py` to download [VARITY features](http://varity.varianteffect.org/) and add them to the dataframe with variant features. Note that this requires selenium and chrome web driver.
 
 #### e) Get variant statistics
-In this step we generate a dataset of variant descriptors. We save 
+In this step we generate a dataset of variant descriptors. First update `ukbb_var_patient_dir` in `ukbb_data_scripts/constants.py` to point to a directory with variant-patient csv files. 
 
+Execute `ukbb_data_scripts/generate_var_patient_mapping.py` to generate variant-patient_id mapping for the relevant variants. It keeps only the variants observed in at most 10% of patients.
+
+Execute `ukbb_data_scripts/generate_var_phenotype.py` to generate files with per gene-phenotype statistics grouped in files by phenotype.
+
+<!-- #### f) Genetic component in phenotype - check how informative one measurement is to other-->
+
+### 2. Variant-phenotype exploration
+
+#### a) Single feature phenotypic effect regression on variants
+Execute `execute_regression.py` to perform single feature phenotypic effect linear regression on variants, per phenotype-gene pair. That is, e.g. linear regression on LDL direct (adjusted) using VEST4 score corresponding to the variants on LDLR as the predictor.
+When predicting binary traits, we use logit regression instead.
+Categorical features are one-hot encoded. When using continuous features, an additional column is used that indicates whether the feature is present for the variant. Each continuous feature is tried in a separate regression with two features derived from it: feature^2 and log(abs(feature) + 1).
+
+The predictand for each variant is the median phenotype among its carriers for continuous phenotypes and mean for binary outcomes. Regression is executed on variants with different allele frequency thresholds: 0.1, 0.01, 0.001, and 0.0001. We use 80% of the variants for training and 20% for validation, splitting at random 10 times.
+
+Notebook `variant_phenotype_exploration.ipynb` is the exploration of the results.

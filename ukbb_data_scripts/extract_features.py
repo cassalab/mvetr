@@ -107,38 +107,12 @@ for field_name in constants.eve_cols:
     pp2_variants_df[f"{field_name}_na"][pp2_variants_df[field_name].isna()] = 1
     pp2_variants_df[field_name].fillna(0, inplace=True)
 
-# get VARITY scores
-# varity_df = pd.read_csv(constants.varity_scores_path, sep="\t")
-
-# varity_df_join_cols = ["aa_ref", "aa_alt", "aa_pos", "p_vid"]
-# for col_name in varity_df_join_cols:
-#     if col_name != "aa_pos":
-#         varity_df[col_name] = varity_df[col_name].apply(str.strip)
-
-# varity_df = varity_df[varity_df_join_cols + constants.varity_cols]
-
-# pp2_variants_df = pp2_variants_df.merge(varity_df, left_on=["aa1", "aa2", "pos", "acc"], right_on=varity_df_join_cols, how="left")
-
-# pp2_variants_df = pp2_variants_df.drop(columns=varity_df_join_cols)
-
-# add cols to indicate NAs and set NAs to zero
-# for field_name in constants.varity_cols:
-#     pp2_variants_df[f"{field_name}_na"] = 0
-#     pp2_variants_df.loc[pp2_variants_df[field_name].isna(), f"{field_name}_na"] = 1
-#     pp2_variants_df[field_name].fillna(0, inplace=True)
-
 # add "_na" fields for the remaining continuous columns
 for field_name in constants.pp2_pred_cols_both:
+    pp2_variants_df[field_name] = pd.to_numeric(pp2_variants_df[field_name], errors="coerce")
     pp2_variants_df[f"{field_name}_na"] = 0
     pp2_variants_df[f"{field_name}_na"][pp2_variants_df[field_name].isna()] = 1
     pp2_variants_df[field_name].fillna(0, inplace=True)
-
-# add "_na" fields
-dbnsfp_cols = pd.read_pickle(constants.dbnsfp_raw_cols_path)
-for field_name in pp2_variants_df[dbnsfp_cols[0].tolist()]:
-    pp2_variants_df[f"{field_name}_na"] = 0
-    pp2_variants_df[f"{field_name}_na"][pp2_variants_df[field_name].isna()] = 1
-    pp2_variants_df[field_name].fillna(0, inplace=True)    
 
 pp2_variants_df.drop_duplicates("var_id", inplace=True)
 # save all the variant features
