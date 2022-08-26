@@ -3,6 +3,8 @@ This code accompanies MSc Thesis Prediction of Missense Variant Effects on Quant
 # Missense Variant Effect on Traits Regression (MVETR)
 Regression models to predict missense variant effects on traits in humans. We use exome sequencing and trait data from UKBB.
 
+`ENV.yml` contains the conda environment we used in the scripts below.
+
 ## Steps
 ### 0. Update the paths
 Update the paths in the `ukbb_data_scripts/constants.py` file.
