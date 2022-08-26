@@ -18,10 +18,6 @@ lr_results_df = pd.read_pickle("regression_results_processed.pkl")
 
 top_lr_results = lr_results_df.sort_values("mean", ascending=False).drop_duplicates("phenotype/gene")[["phenotype/gene", "feature", "mean", "std", "maf"]]
 
-# take only the "phenotype/gene" pairs that performed well in the previous iterative search 
-# top_lr_results = top_lr_results[top_lr_results["phenotype/gene"].isin(
-#     pd.read_pickle("regression_results_w_multi_features_processed.pkl")["phenotype/gene"])]
-
 def process_phenotype_gene(phenotype_gene):
     train_size = 0.8
     n_seeds = 100
@@ -42,10 +38,12 @@ def process_phenotype_gene(phenotype_gene):
         cur_best_std_r2 = 0
         cur_best_features = []
         cur_best_r2_history = []
+        cur_best_r2_std_history = []
         added_feature = True
-
+        # limit the maximal number of features to sqrt(N), as suggested in https://academic.oup.com/bioinformatics/article/21/8/1509/249540
+        max_features = int(np.sqrt(len(cur_unique_vars)))
         # continue while adding a new feature improves the R2 by at least 0.005
-        while added_feature:
+        while added_feature and len(cur_best_features) < max_features:
             added_feature = False
             best_feature_mean_r2 = -9999999
             best_feature_median_r2 = 0
@@ -94,13 +92,14 @@ def process_phenotype_gene(phenotype_gene):
             # after checking all the features in this iteration, add the best feature if it improves by a margin
             if best_feature_mean_r2 > cur_best_mean_r2 + 0.005:
                 added_feature = True
-                cur_best_mean_r2 = best_feature_mean_r2546
+                cur_best_mean_r2 = best_feature_mean_r2
                 cur_best_r2_history.append(cur_best_mean_r2)
+                cur_best_r2_std_history.append(best_feature_std_r2)
                 cur_best_features.append(best_feature)
                 cur_best_median_r2 = best_feature_median_r2
                 cur_best_std_r2 = best_feature_std_r2
                 cur_features_df = best_feature_features_df.copy()
-        results.append((phenotype_gene, cur_best_features, cur_best_mean_r2, cur_best_median_r2, cur_best_std_r2, len(cur_vars_df), maf, cur_best_r2_history))
+        results.append((phenotype_gene, cur_best_features, cur_best_mean_r2, cur_best_median_r2, cur_best_std_r2, len(cur_vars_df), maf, cur_best_r2_history, cur_best_r2_std_history))
     return results
 
 
@@ -108,7 +107,7 @@ with Pool(100) as p:
     out = p.map(process_phenotype_gene, top_lr_results["phenotype/gene"])
 
 results_df = pd.DataFrame(itertools.chain.from_iterable(out),
-                          columns=["phenotype/gene", "features", "mean", "median", "std", "#variants", "maf", "r2_history"]
+                          columns=["phenotype/gene", "features", "mean", "median", "std", "#variants", "maf", "r2_mean_history", "r2_std_history"]
                          ).sort_values("mean", ascending=False).reset_index(drop=True)
 
 results_df.to_pickle("regression_greedy_multi_feature.pkl")

@@ -1,5 +1,5 @@
 # Missense Variant Trait Effect predictor (MVTE)
-Inspired by MVP, we develop a deep learning network to predict missense variant effects on traits in humans. We use exome sequencing and trait data from UKBB.
+Inspired by MVP, we develop models to predict missense variant effects on traits in humans. We use exome sequencing and trait data from UKBB.
 
 ## Steps
 ### 0. Update the paths
@@ -8,7 +8,7 @@ Update the paths in the `ukbb_data_scripts/constants.py` file.
 ### 1. Phenotype dataset preprocessing
 
 #### a) Identify gene-phenotype associations
-We limit our study to the top gene-phenotype associations identified in [Systematic single-variant and gene-based association testing of thousands of phenotypes in 426,370 UK Biobank exomes](https://www.medrxiv.org/content/10.1101/2021.06.19.21259117v4.full-text). We take the results of the SKAT-O gene-based burden tests with p-value threshold of 10^{-5}. They can be downloaded using the web-GUI at [https://app.genebass.org/gene/ENSG00000175445/phenotype/continuous-30760-both_sexes--irnt?burdenSet=missense%7CLC&phewasOpts=1&resultIndex=top-associations&resultLayout=full](https://app.genebass.org/gene/ENSG00000175445/phenotype/continuous-30760-both_sexes--irnt?burdenSet=missense%7CLC&phewasOpts=1&resultIndex=top-associations&resultLayout=full). Update the `genebass_top_hist_path` in `ukbb_data_scripts/constants.py`.
+We limit our study to the top gene-phenotype associations identified in [Systematic single-variant and gene-based association testing of thousands of phenotypes in 426,370 UK Biobank exomes](https://www.medrxiv.org/content/10.1101/2021.06.19.21259117v4.full-text). We take the results of the SKAT-O gene-based burden tests with p-value threshold of 10^{-6}. They can be downloaded using the web-GUI at [https://app.genebass.org/gene/ENSG00000175445/phenotype/continuous-30760-both_sexes--irnt?burdenSet=missense%7CLC&phewasOpts=1&resultIndex=top-associations&resultLayout=full](https://app.genebass.org/gene/ENSG00000175445/phenotype/continuous-30760-both_sexes--irnt?burdenSet=missense%7CLC&phewasOpts=1&resultIndex=top-associations&resultLayout=full). Update the `genebass_top_hist_path` in `ukbb_data_scripts/constants.py`.
 
 #### b) Extract the relevant phenotype annotations
 Execute `ubb_data_scripts/split_ukbb_basket.py`
@@ -64,6 +64,9 @@ Execute `execute_regression.py` to perform single feature phenotypic effect line
 When predicting binary traits, we use logit regression instead.
 Categorical features are one-hot encoded. When using continuous features, an additional column is used that indicates whether the feature is present for the variant. Each continuous feature is tried in a separate regression with two features derived from it: feature^2 and log(abs(feature) + 1).
 
-The predictand for each variant is the median phenotype among its carriers for continuous phenotypes and mean for binary outcomes. Regression is executed on variants with different allele frequency thresholds: 0.1, 0.01, 0.001, and 0.0001. We use 80% of the variants for training and 20% for validation, splitting at random 10 times.
+The predictand for each variant is the median phenotype among its carriers for continuous phenotypes and mean for binary outcomes. Regression is executed on variants with different allele frequency thresholds: 0.1, 0.01, 0.001, and 0.0001. We use 80% of the variants for training and 20% for validation, splitting at random 100 times.
 
-Notebook `variant_phenotype_exploration.ipynb` is the exploration of the results.
+Notebook `variant_phenotype_exploration.ipynb` contains the exploration of the results.
+
+#### b) Multi-feature phenotypic effect regression on variants
+We extend the experiments to use more than one variant feature by using greedy feature selection. The features are added as long as they improve the current best R2 score by at least 0.005.
