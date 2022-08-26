@@ -27,7 +27,6 @@ def process_phenotype_gene(phenotype_gene):
     vars_df = all_vars_phenotypes_df[(all_vars_phenotypes_df.phenotype == phenotype) & (all_vars_phenotypes_df.gene == gene)]
     phenotype_continuous = vars_df.phenotype_continuous.iloc[0]
     # start with top result feature
-    top_feature = top_lr_results[top_lr_results["phenotype/gene"] == phenotype_gene].feature.iloc[0]
     all_feature_names = list(set(constants.all_cat_cols + constants.all_cont_cols))
     for maf in [0.1, 0.01, 0.001, 0.0001]:
         cur_vars_df = vars_df[vars_df.highest_AF < maf]

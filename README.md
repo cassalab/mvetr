@@ -1,5 +1,7 @@
-# Missense Variant Trait Effect predictor (MVTE)
-Inspired by MVP, we develop models to predict missense variant effects on traits in humans. We use exome sequencing and trait data from UKBB.
+This code accompanies MSc Thesis Prediction of Missense Variant Effects on Quantitative Traits From Population Cohort Data
+
+# Missense Variant Effect on Traits Regression (MVETR)
+Regression models to predict missense variant effects on traits in humans. We use exome sequencing and trait data from UKBB.
 
 ## Steps
 ### 0. Update the paths
@@ -66,7 +68,8 @@ Categorical features are one-hot encoded. When using continuous features, an add
 
 The predictand for each variant is the median phenotype among its carriers for continuous phenotypes and mean for binary outcomes. Regression is executed on variants with different allele frequency thresholds: 0.1, 0.01, 0.001, and 0.0001. We use 80% of the variants for training and 20% for validation, splitting at random 100 times.
 
-Notebook `variant_phenotype_exploration.ipynb` contains the exploration of the results.
-
 #### b) Multi-feature phenotypic effect regression on variants
 We extend the experiments to use more than one variant feature by using greedy feature selection. The features are added as long as they improve the current best R2 score by at least 0.005.
+
+Notebook `1. variant_phenotype_linear_regression.ipynb` contains the exploration of the results and multi-feature regression.
+Finally, execute `ukbb_data_scripts/gene-trait_pairs_section.ipynb`.

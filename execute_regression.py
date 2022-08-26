@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import itertools
 
-from tqdm import tqdm
 from multiprocessing import Pool
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -38,7 +37,6 @@ def process_phenotype(phenotype):
                     n_seeds = 100
                     best_r2 = -99999
                     all_r2 = []
-                    r2_per_gene = []
                     for seed in range(n_seeds):
                         train_indices, test_indices = train_test_split(range(len(cur_vars_df)), train_size=train_size, random_state=seed)
 
@@ -62,7 +60,6 @@ def process_phenotype(phenotype):
                         all_r2.append(cur_r2)
                         if cur_r2 > best_r2:
                             best_r2 = cur_r2
-                            best_regr = regr
                     results.append((phenotype + "/" + gene, feature, np.mean(all_r2), np.median(all_r2), np.std(all_r2), len(cur_vars_df), maf, extended_features))
     return results
 
