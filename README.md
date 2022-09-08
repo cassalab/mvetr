@@ -1,4 +1,6 @@
-This code accompanies MSc Thesis Prediction of Missense Variant Effects on Quantitative Traits From Population Cohort Data
+This code accompanies [MSc Thesis Prediction of Missense Variant Effects on Quantitative Traits From Population Cohort Data](https://www.researchgate.net/publication/363353233_Prediction_of_Missense_Variant_Effects_on_Quantitative_Traits_From_Population_Cohort_Data)
+
+https://www.researchgate.net/publication/363353233_Prediction_of_Missense_Variant_Effects_on_Quantitative_Traits_From_Population_Cohort_Data
 
 # Missense Variant Effect on Traits Regression (MVETR)
 Regression models to predict missense variant effects on traits in humans. We use exome sequencing and trait data from UKBB.
